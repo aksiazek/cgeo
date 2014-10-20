@@ -1,0 +1,100 @@
+Ćwiczenie zostało w pełni zrealizowane.
+Dołączono źródła i przykł. wizualizację klasyfikacji punktów generowanych w podpunkcie d)
+
+Uwagi: 
+        punkty czerwone leżą na prostej, niebieskie na lewo, zielone na prawo od prostej
+        aby zobaczyć klasyfikację punktów wg innej metody wystarczy w plot.gnu zmienić 
+        fragment using 1:2:[liczba do zmiany] (od 3 do 7)
+        kolejność metod jest identyczna z instrukcją
+        
+        
+Przykładowe statystyki:
+
+[podpunkt.dat]
+[metoda]: [na lewo] [współliniowe] [na prawo]
+
+[tabelka różnic]   
+        
+a.dat
+
+manual_det1: 49915 0 50085
+manual_det2: 49915 0 50085
+orient2dfast: 49915 0 50085
+orient2dexact: 49915 0 50085
+orient2dslow: 49915 0 50085
+
+manual_det1 manual_det2 orient2dfast orient2dexact orient2dslow
+
+0 0 0 0 0 
+
+0 0 0 0 0 
+
+0 0 0 0 0 
+
+0 0 0 0 0 
+
+0 0 0 0 0 
+
+
+b.dat
+
+
+manual_det1: 50075 0 49925
+manual_det2: 50073 9 49918
+orient2dfast: 50073 9 49918
+orient2dexact: 50075 0 49925
+orient2dslow: 50076 0 49924
+
+manual_det1 manual_det2 orient2dfast orient2dexact orient2dslow
+
+0 9 9 0 3 
+
+9 0 0 9 9 
+
+9 0 0 9 9 
+
+0 9 9 0 3 
+
+3 9 9 3 0 
+
+
+c.dat
+
+manual_det1: 479 0 521
+manual_det2: 479 0 521
+orient2dfast: 479 0 521
+orient2dexact: 479 0 521
+orient2dslow: 479 0 521
+
+manual_det1 manual_det2 orient2dfast orient2dexact orient2dslow
+
+0 0 0 0 0 
+
+0 0 0 0 0 
+
+0 0 0 0 0 
+
+0 0 0 0 0 
+
+0 0 0 0 0 
+
+
+d.dat
+
+manual_det1: 413 409 178
+manual_det2: 127 735 138
+orient2dfast: 127 735 138
+orient2dexact: 508 3 489
+orient2dslow: 489 7 504
+
+manual_det1 manual_det2 orient2dfast orient2dexact orient2dslow
+
+0 695 695 406 705 
+
+695 0 0 864 728 
+
+695 0 0 864 728 
+
+406 864 864 0 491 
+
+705 728 728 491 0 
