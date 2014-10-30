@@ -1,11 +1,17 @@
+CC = g++
 CPP = g++
-PROG = convex_hull
-CXXFLAGS = -Wall -std=c++11
+PROG = convex_hull datasets
+CXXFLAGS = -Wall -std=c++11 -I gogui/libraries/cpp -I gogui/libraries/cpp/libraries/cppjson/include
 LDLIBS = -lm
 
 all: $(PROG)
 
-$(PROG): $(PROG).o predicates.o 
+convex_hull: convex_hull.o json.o
+
+json.o: 
+	g++ -c $(CXXFLAGS) $^ gogui/libraries/cpp/libraries/cppjson/json.cc -o $@ $(LDLIBS)
+
+datasets: datasets.o predicates.o 
 	g++ $(CXXFLAGS) $^ -o $@ $(LDLIBS)
 	
 clean:
