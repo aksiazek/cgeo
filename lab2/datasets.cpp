@@ -138,7 +138,7 @@ int main() {
     prawy_dolny[0] = 10; prawy_dolny[1] = -10;
     make_rectangle_dataset("c.dat", lewy_gorny, prawy_dolny, 100);
     
-	make_square_dataset("d.dat", 10, 25, 20);
+	make_square_dataset("d.dat", 10, 25, 100);
 
 	return 0;
 }
