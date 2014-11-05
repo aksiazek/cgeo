@@ -1,0 +1,40 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/zbysz/Projects/gogui/libraries/cppjson/json.cc
+cppjson.h
+/home/zbysz/Projects/gogui/libraries/cppjson/cppjson.h
+stdarg.h
+-
+stdio.h
+-
+string.h
+-
+stdlib.h
+-
+sstream
+-
+
+include/cppjson.h
+string
+-
+map
+-
+vector
+-
+istream
+-
+ostream
+-
+stdint.h
+-
+stdexcept
+-
+assert.h
+-
+

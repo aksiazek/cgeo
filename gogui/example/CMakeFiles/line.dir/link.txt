@@ -1,0 +1,1 @@
+/usr/bin/c++   -std=c++11    CMakeFiles/line.dir/line.cpp.o  -o line -rdynamic cppjson/libcppjson.a 

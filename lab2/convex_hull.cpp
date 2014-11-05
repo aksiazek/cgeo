@@ -7,7 +7,7 @@
 #include <utility>
 #include <stack>
 
-#include "gogui/libraries/cpp/gogui.hpp"
+#include "../gogui/gogui_core/include/gogui.hpp"
 
 using namespace std;
 
@@ -54,7 +54,7 @@ void graham_hull(vector<point>& cloud) {
 	swap(*cloud.begin(), *first_element_y);
 	first_element = *cloud.begin();
 	
-	printf("%lf\n", first_element.y);
+	//printf("%lf\n", first_element.y);
 	
 	sort(cloud.begin()+1, cloud.end(), order_by_angle);
 	
@@ -98,7 +98,7 @@ void jarvis_hull(vector<point>& cloud) {
 	vector<point>::iterator i = first_element_y;
 	
 	hull.push(*i);
-	printf("push y_min elem %lf %lf\n", i->x, i->y);
+	//printf("push y_min elem %lf %lf\n", i->x, i->y);
 	
 	do {
 		bool any = false;
@@ -136,16 +136,17 @@ void jarvis_hull(vector<point>& cloud) {
 
 int main(int argc, char* argv[]) {
 
-	if(argc != 2) {
-			printf("usage: %s [dataset]\n", argv[0]);
+	if(argc != 3) {
+			printf("usage: %s [dataset] [jarvis|graham]\n", argv[0]);
 			exit(-1);
 	}
 	vector<point> cloud;
 	load_dataset(cloud, argv[1]);
 	
-	//graham_hull(cloud);
-	
-	jarvis_hull(cloud);
+	if(strcmp(argv[2], "jarvis") == 0)
+		jarvis_hull(cloud);
+	else if(strcmp(argv[2], "graham") == 0)
+		graham_hull(cloud);
 	
 	return 0;
 }

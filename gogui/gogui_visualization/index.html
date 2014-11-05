@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title> GO-GOI Visualiser </title>
+    <link rel="stylesheet" type="text/css" href="resources/style.css"/>
+    <script type="text/javascript" src="js/d3.v3.min.js"></script>
+    <script type="text/javascript" src="lib/jquery-2.1.1.js"></script>
+    <script type="text/javascript" src="js/DataRepository.js"></script>
+    <script type="text/javascript" src="js/Snapshot.js"></script>
+    <script type="text/javascript" src="js/SnapshotsIterator.js"></script>
+    <script type="text/javascript" src="js/FileDataReader.js"></script>
+    <script type="text/javascript" src="js/scripts.js"></script>
+    <script type="text/javascript" src="js/InputDataReader.js"></script>
+
+    <script type="application/javascript">
+        $("document").ready(registerFileInputHandler);
+    </script>
+</head>
+
+<body onload="initJS();">
+
+<div class="main">
+
+    <div class="canvas-area">
+        <svg class="my-canvas"></svg>
+    </div>
+
+    <p class="counterLabel"></p>
+
+    <div class="buttons-bar bar">
+        <button type="button" class="backwardButton btn btn-default" onclick="oneBackward();"> Wstecz</button>
+        <button type="button" class="resetButton btn btn-default" onclick="reset();"> Reset</button>
+        <button type="button" class="forwardButton btn btn-default" onclick="oneForward();"> Dalej</button>
+        <button type="button" id="playButton" class=" btn btn-default" onclick="play(this);"> Odtwarzaj</button>
+        <button type="button" id="parseInputButton" class=" btn btn-default" onclick="parseInput();"> Wklej dane
+        </button>
+    </div>
+    <div class="bar">
+        <input type="file" id="upload"/>
+    </div>
+    <div class="bar">
+        <textarea id="inputArea"> Insert data... </textarea>
+    </div>
+</div>
+
+</body>
+</html>

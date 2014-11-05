@@ -1,0 +1,40 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/media/ark/Data/Code/Dev/Courses/Geom/gogui/cppjson/include/cppjson.h
+string
+-
+map
+-
+vector
+-
+istream
+-
+ostream
+-
+stdint.h
+-
+stdexcept
+-
+assert.h
+-
+
+/media/ark/Data/Code/Dev/Courses/Geom/gogui/cppjson/json.cc
+cppjson.h
+/media/ark/Data/Code/Dev/Courses/Geom/gogui/cppjson/cppjson.h
+stdarg.h
+-
+stdio.h
+-
+string.h
+-
+stdlib.h
+-
+sstream
+-
+

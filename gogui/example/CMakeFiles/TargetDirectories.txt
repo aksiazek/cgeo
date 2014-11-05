@@ -1,0 +1,2 @@
+/media/ark/Data/Code/Dev/Courses/Geom/gogui/example/cppjson/CMakeFiles/cppjson.dir
+/media/ark/Data/Code/Dev/Courses/Geom/gogui/example/CMakeFiles/line.dir
