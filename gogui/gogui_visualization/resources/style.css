@@ -74,8 +74,8 @@
 }
 
 .processed-point {
-    stroke: gray;
-    fill: gray;
+    stroke: green;
+    fill: green;
 }
 
 .normal-line {
@@ -86,6 +86,11 @@
 .active-line {
     stroke: red;
     fill: red;
+}
+
+.processed-line {
+	stroke: green;
+	fill: green;
 }
 
 .axis path,

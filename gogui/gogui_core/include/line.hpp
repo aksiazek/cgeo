@@ -42,8 +42,8 @@ namespace gogui {
             parameters.C = getC();
         }
 
-        const Point point1;
-        const Point point2;
+        Point point1;
+        Point point2;
     private:
         bool isEqualToWithOrder(const Line &that) const {
             return (point1 == that.point1) && (point2 == that.point2);

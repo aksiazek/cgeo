@@ -151,6 +151,8 @@ function drawSnapshot(snapshot) {
 
         if (snapshotLines[i].style == "normal") {
             $("#" + lineID).attr('class', 'normal-line');
+        } else if (snapshotLines[i].style == "processed") {
+            $("#" + lineID).attr('class', 'processed-line');
         } else {
             $("#" + lineID).attr('class', 'active-line');
         }

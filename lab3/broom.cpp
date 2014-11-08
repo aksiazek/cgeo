@@ -17,31 +17,55 @@ using std::sort;
 using std::lower_bound;
 
 double X; // broom global state needed
-double reverse;
 
 namespace gogui {
 	class SortedLine : public Line {
 		public:
-			double x_range = abs(point2.x - point1.x);
+			double x_range = fabs(point2.x - point1.x);
+			bool reverse_on_saved = false;
+			double saved;
+			Line* reverse_partner = nullptr;
 		
 			bool operator<(const SortedLine &that) const {
 				
-				double r = abs(point2.x - X) / x_range;
-				double y = (1-r)*point1.y + r*point2.y;
+				double r = fabs(point2.x - X) / x_range;
+				//printf("r: %lf\n", r);
+				double y = r*point1.y + (1-r)*point2.y;
 				
-				double r_that = abs(that.point2.x - X) / that.x_range;
-				double y_that = (1-r_that)*that.point1.y + r_that*that.point2.y;
+				double r_that = fabs(that.point2.x - X) / that.x_range;
+				double y_that = r_that*that.point1.y + (1-r_that)*that.point2.y;
+				
+				/*print_line("< this");
+				printf("y: %lf\n", y);
+				that.print_line("< that");
+				printf("y_that: %lf\n", y_that);*/
 				
 				bool ret = y < y_that;
-				if(!reverse) return ret; else return !ret;
+				if(reverse_on_saved && (X == saved) && (that == *reverse_partner)) { 
+					
+					/*if(ret)
+						print_line("< this is smaller");
+					else
+						that.print_line("< that is smaller");
+					puts("reverse <");
+					printf("X: %lf\n", X);*/
+					return !ret; 
+				} else {
+					
+					/*if(ret)
+						print_line("< this is smaller");
+					else
+						that.print_line("< that is smaller");
+					puts("<");
+					printf("X: %lf\n", X);*/
+					return ret;
+				}
 			}
-			using Line::Line;	
+			using Line::Line;
 			
-			/*SortedLine& operator=(const SortedLine& that) {
-				point1 = that.point1;
-				point2 = that.point2;
-				return *this;
-			}*/
+			void print_line(const char* comment) const {
+				printf("%s: %lf %lf %lf %lf\n", comment, point1.x, point1.y, point2.x, point2.y);
+			}
 	};
 	
 	template<>
@@ -73,7 +97,7 @@ class Event : public Point {
 		EventType type;
 		int line_index; //index in lines
 		
-		vector<SortedLine>::iterator* intersected = nullptr; // undefined for non-inner
+		vector<SortedLine>::iterator intersected; // undefined for non-inner
 		Event(const Point& p, EventType t, int l) 
 			: Point(p.x, p.y), type(t), line_index(l) {}
 };
@@ -94,26 +118,21 @@ void load_dataset(vector<SortedLine>& lines, const char* filename) {
 		}
 		fclose(file);
 	}
-	//snapshot();
-}
-
-bool cmp(double a, double b) {
-	return fabs(a - b) < EPSILON;
 }
 
 bool intersection(const Line& a, const Line& b, Point& savepoint) {
-	printf("Intersecting test -> line one: p1: %lf %lf , p2: %lf %lf\n", 
+	/*printf("Intersecting test -> line one: p1: %lf %lf , p2: %lf %lf\n", 
 		a.point1.x, a.point1.y,
 		a.point2.x, a.point2.y);
 	
 	printf("Intersecting test -> line two: p1: %lf %lf , p2: %lf %lf\n", 
 		b.point1.x, b.point1.y,
 		b.point2.x, b.point2.y);
-	
+	*/
 	double denominator = (a.point1.x - a.point2.x)*(b.point1.y-b.point2.y) -
 		(b.point1.x - b.point2.x)*(a.point1.y-a.point2.y);
 	if (denominator == 0) {
-		puts("denom fail");
+		//puts("denom fail");
 		return false;
 	}
 	double part1 = (a.point1.x*a.point2.y) - (a.point1.y*a.point2.x);
@@ -131,9 +150,9 @@ bool intersection(const Line& a, const Line& b, Point& savepoint) {
 	ys.push_back(b.point2.y);
 	sort(ys.begin(), ys.end());
 	
-	if((savepoint.x < (1-EPSILON)*std::min(a.point1.x, b.point1.x)) || 
-		savepoint.x > (1+EPSILON)*std::max(a.point2.x, b.point2.x) 
-		|| (savepoint.y < (1-EPSILON)*ys[0]) || (savepoint.y > (1+EPSILON)*ys[3])) {
+	if((savepoint.x < (1-EPSILON)*std::max(a.point1.x, b.point1.x)) || 
+		savepoint.x > (1+EPSILON)*std::min(a.point2.x, b.point2.x) 
+		|| (savepoint.y < (1-EPSILON)*ys[1]) || (savepoint.y > (1+EPSILON)*ys[2])) {
 		puts("bounds fail");
 		return false;
 	}
@@ -141,13 +160,16 @@ bool intersection(const Line& a, const Line& b, Point& savepoint) {
 	return true;
 }
 
-bool lines_order_by_x(const SortedLine& lhs, const SortedLine& rhs)
-{ return lhs.point1.x < rhs.point1.x; }
+bool lines_order_by_x(const SortedLine& lhs, const SortedLine& rhs) { 
+	return lhs.point1.x < rhs.point1.x; 
+}
 
 void handle_left_end
 	(set<Event>::iterator& current_event, set<Event>& events, set<SortedLine>& broom_state, 
-	vector<SortedLine>& lines, vector<Point>& events_cloud, vector<Point>::iterator& cloud_pointer) 
+	vector<SortedLine>& lines, vector<Point>& events_cloud) 
 {
+	vector<Point>::iterator cloud_pointer;
+	
 	SortedLine& line = lines[current_event->line_index];
 	
 	printf("Left end at: %lf %lf\n", current_event->x, current_event->y);
@@ -155,9 +177,8 @@ void handle_left_end
 		= broom_state.insert(line).first;
 	line.setStatus(GeoObject::Status::Active);
 	snapshot();
-	printf("Broom includes line: p1: %lf %lf , p2: %lf %lf\n", 
-		line.point1.x, line.point1.y,
-		line.point2.x, line.point2.y);
+	//printJSON();
+	line.print_line("Broom includes line");
 		
 	bool check = true;
 	if(neighbor != broom_state.begin())
@@ -169,19 +190,30 @@ void handle_left_end
 	Point possible(0,0);
 	if(check && intersection(line, *neighbor, possible)) {
 		Event inter(possible, Inner, current_event->line_index);
-		vector<SortedLine>::iterator sect = lower_bound(lines.begin(), lines.end(), *neighbor, lines_order_by_x); 
-		inter.intersected = &sect;
+		vector<SortedLine>::iterator sect 
+			= lower_bound(lines.begin(), lines.end(), *neighbor, lines_order_by_x); 
+		inter.intersected = sect;
 		events.insert(inter);
-		printf("Intersecting line one: p1: %lf %lf , p2: %lf %lf\n", 
-		line.point1.x, line.point1.y,
-		line.point2.x, line.point2.y);
-		printf("Intersecting line two: p1: %lf %lf , p2: %lf %lf\n", 
-		neighbor->point1.x, neighbor->point1.y,
-		neighbor->point2.x, neighbor->point2.y);
+		
+		assert(lines[inter.line_index] == line);
+		assert(*inter.intersected == *neighbor);
+		
+		line.print_line("Intersecting line one");
+		neighbor->print_line("Intersecting line two");
 		printf("new event intersection: %lf %lf\n", 
 			possible.x, possible.y);
-		events_cloud.insert(cloud_pointer, possible);
+		
+		cloud_pointer = lower_bound(events_cloud.begin(), events_cloud.end(), possible);
+		//printf("lb intersection: %lf %lf\n", cloud_pointer->x, cloud_pointer->y);
+		cloud_pointer = events_cloud.insert(cloud_pointer, possible);	
+		//printf("cloud pointer point: %lf %lf\n", cloud_pointer->x, cloud_pointer->y);
+		assert(*cloud_pointer == possible);
+		/*for(vector<Point>::iterator it = events_cloud.begin(); it != events_cloud.end(); ++it)
+				printf("cloud point: %lf %lf\n", it->x, it->y);*/
+		
 		snapshot();
+		
+		//printJSON();
 	}
 		
 	set<SortedLine>::iterator neighbor2 = broom_state.find(line);
@@ -198,28 +230,38 @@ void handle_left_end
 	Point maybe(0,0);
 	if(check && intersection(line, *neighbor2, maybe)) {
 		Event inter(maybe, Inner, current_event->line_index);
-		vector<SortedLine>::iterator sect = lower_bound(lines.begin(), lines.end(), *neighbor, lines_order_by_x); 
-		inter.intersected = &sect;
+		vector<SortedLine>::iterator sect = lower_bound(lines.begin(), lines.end(), *neighbor2, lines_order_by_x); 
+		
+		inter.intersected = sect;
 		events.insert(inter);
 		
-		printf("Intersecting line one: p1: %lf %lf , p2: %lf %lf\n", 
-		line.point1.x, line.point1.y,
-		line.point2.x, line.point2.y);
-		printf("Intersecting line two: p1: %lf %lf , p2: %lf %lf\n", 
-		neighbor2->point1.x, neighbor2->point1.y,
-		neighbor2->point2.x, neighbor2->point2.y);
+		assert(lines[inter.line_index] == line);
+		assert(*inter.intersected == *neighbor2);
+
+		line.print_line("Intersecting line one");
+		neighbor2->print_line("Intersecting line two");
 		
 		printf("new event intersection: %lf %lf\n", 
 			maybe.x, maybe.y);
-		events_cloud.insert(cloud_pointer, maybe);
+			
+		cloud_pointer = lower_bound(events_cloud.begin(), events_cloud.end(), maybe);
+		printf("lb intersection: %lf %lf\n", cloud_pointer->x, cloud_pointer->y);
+		cloud_pointer = events_cloud.insert(cloud_pointer, maybe);
+		printf("cloud pointer point: %lf %lf\n", cloud_pointer->x, cloud_pointer->y);
+		/*for(vector<Point>::iterator it = events_cloud.begin(); it != events_cloud.end(); ++it)
+				printf("cloud point: %lf %lf\n", it->x, it->y);*/
+		assert(*cloud_pointer == maybe);
+		
+		
 		snapshot();
 	}
 }
 
 void handle_right_end
 	(set<Event>::iterator& current_event, set<Event>& events, set<SortedLine>& broom_state, 
-	vector<SortedLine>& lines, vector<Point>& events_cloud, vector<Point>::iterator& cloud_pointer) 
+	vector<SortedLine>& lines, vector<Point>& events_cloud) 
 {
+	vector<Point>::iterator cloud_pointer;
 	SortedLine& line = lines[current_event->line_index];
 	printf("Right end at: %lf %lf\n", current_event->x, current_event->y);
 	set<SortedLine>::iterator neighbor = 
@@ -233,10 +275,10 @@ void handle_right_end
 	
 	broom_state.erase(line);
 	line.setStatus(GeoObject::Status::Processed);
-	snapshot();
-	printf("Broom loses line: p1: %lf %lf , p2: %lf %lf\n", 
-		line.point1.x, line.point1.y,
-		line.point2.x, line.point2.y);
+	snapshot(); 
+	line.print_line("Broom loses line");
+	//printJSON();
+	
 	set<SortedLine>::iterator neighbor2 = 
 		broom_state.find(line);
 	if(neighbor2 == broom_state.end())
@@ -248,12 +290,27 @@ void handle_right_end
 		vector<SortedLine>::iterator line_1 = lower_bound(lines.begin(), lines.end(), *neighbor, lines_order_by_x); 
 		vector<SortedLine>::iterator line_2 = lower_bound(lines.begin(), lines.end(), *neighbor2, lines_order_by_x); 
 		Event inter(maybe, Inner, line_1 - lines.begin());
-		inter.intersected = &line_2;
+		
+		inter.intersected = line_2;
 		events.insert(inter);
+		
+		assert(lines[inter.line_index] == *neighbor);
+		assert(*inter.intersected == *neighbor2);
+		
+		neighbor->print_line("Intersecting line one");
+		neighbor2->print_line("Intersecting line one");
+		
 		printf("new event intersection: %lf %lf\n", 
 			maybe.x, maybe.y);
 			
-		events_cloud.insert(cloud_pointer, maybe);
+		cloud_pointer = lower_bound(events_cloud.begin(), events_cloud.end(), maybe);
+		printf("lb intersection: %lf %lf\n", cloud_pointer->x, cloud_pointer->y);
+		cloud_pointer = events_cloud.insert(cloud_pointer, maybe);
+		printf("cloud pointer point: %lf %lf\n", cloud_pointer->x, cloud_pointer->y);
+		assert(*cloud_pointer == maybe);
+		for(vector<Point>::iterator it = events_cloud.begin(); it != events_cloud.end(); ++it)
+				printf("cloud point: %lf %lf\n", it->x, it->y);
+		
 		snapshot();
 	}				
 }
@@ -263,6 +320,8 @@ void sweep(vector<SortedLine>& lines) {
 	set<Event> events;
 	vector<Point> events_cloud;
 	
+	//std::ios_base::sync_with_stdio(false);
+		
 	sort(lines.begin(), lines.end(), lines_order_by_x);
 	/*for(vector<SortedLine>::iterator it = lines.begin(); it != lines.end(); ++it) {	
 		printf("Left end sort at: %lf %lf\n", it->point1.x, it->point1.y);
@@ -281,7 +340,7 @@ void sweep(vector<SortedLine>& lines) {
 	for(set<Event>::iterator it = events.begin(); it != events.end(); ++it) {
 		Point p(it->x, it->y);
 		events_cloud.push_back(p);
-		printf("Event init at: %lf %lf type: %s\n", it->x, it->y, getTextForEnum(it->type));
+		printf("Cloud init at: %lf %lf type: %s\n", it->x, it->y, getTextForEnum(it->type));
 	}
 	snapshot();
 
@@ -290,43 +349,78 @@ void sweep(vector<SortedLine>& lines) {
 	do {
 		current_event = events.begin();
 		X = current_event->x;
+		Point tmp(current_event->x,current_event->y);
+		cloud_pointer = lower_bound(events_cloud.begin(), events_cloud.end(), tmp);
 				
+		assert(cloud_pointer->x == current_event->x);
 		cloud_pointer->setStatus(GeoObject::Status::Active);
+		printf("event at: %lf %lf is marked active\n", current_event->x, current_event->y);
 		snapshot();
+		//printJSON();
 		// update broom_state
 		switch (current_event->type) {
 			case Left : 
-				handle_left_end(current_event, events, broom_state, lines, events_cloud, cloud_pointer);
-				cloud_pointer->setStatus(GeoObject::Status::Normal);
+				handle_left_end(current_event, events, broom_state, lines, events_cloud);
 				break;
 			case Right:
-				handle_right_end(current_event, events, broom_state, lines, events_cloud, cloud_pointer);
-				cloud_pointer->setStatus(GeoObject::Status::Normal);
+				handle_right_end(current_event, events, broom_state, lines, events_cloud);
 				break;
 			case Inner:
 				printf("Intersection at: %lf %lf\n", current_event->x, current_event->y);
 					
+				puts("Before broom");
+				for(set<SortedLine>::iterator u = broom_state.begin(); u != broom_state.end(); ++u) {
+					u->print_line("");
+				}
+					
 				SortedLine& line = lines[current_event->line_index];
+				SortedLine& interline = *(current_event->intersected);
+				unsigned a = broom_state.size();
+				line.print_line("please rem");
+				interline.print_line("please rem");
 				broom_state.erase(line);
-				broom_state.erase(*(*(current_event->intersected)));
+				broom_state.erase(interline);
+				assert(broom_state.size() == (a-2));
 				
-				reverse = true;
+				puts("After erase");
+				for(set<SortedLine>::iterator u = broom_state.begin(); u != broom_state.end(); ++u) {
+					u->print_line("");
+				}
+				
+				
+				line.reverse_on_saved = true;
+				line.saved = X;
+				line.reverse_partner = &interline;
+				
+				interline.reverse_on_saved = true;
+				interline.saved = X;
+				interline.reverse_partner = &line;
+				
 				broom_state.insert(line);
-				broom_state.insert(*(*(current_event->intersected)));
-				reverse = false;
+				broom_state.insert(interline);
+				
 				// may break really...
 				
+				puts("After broom");
+				for(set<SortedLine>::iterator u = broom_state.begin(); u != broom_state.end(); ++u) {
+					u->print_line("");
+				}
+				
 				// more
-				cloud_pointer->setStatus(GeoObject::Status::Processed);
+				
 				break;
 		}
 		
-		//printf("%lf %lf\n", current_event->x, current_event->y);
+		cloud_pointer = lower_bound(events_cloud.begin(), events_cloud.end(), tmp);
+		assert(cloud_pointer->x == current_event->x);
+		cloud_pointer->setStatus(GeoObject::Status::Processed);
+		printf("event at: %lf %lf is marked processed\n", current_event->x, current_event->y);
 		
 		snapshot();
+
 		events.erase(current_event);
-		if(cloud_pointer != events_cloud.end()) 
-			cloud_pointer++;
+		
+		//printJSON();
 	} while (!events.empty());
 	
 	
@@ -340,7 +434,7 @@ int main(int argc, char* argv[]) {
 	}
 	vector<SortedLine> lines;
 	load_dataset(lines, argv[1]);
-	snapshot();
+	//snapshot();
 	sweep(lines);
 	printJSON();
 	

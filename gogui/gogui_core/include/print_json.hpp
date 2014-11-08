@@ -115,6 +115,7 @@ namespace gogui {
                     case GeoObject::Status::Processed:
                         return "processed";
                 }
+                return "error";
             }
 
             json::Value getJSONState(const History::State &state) {
@@ -131,7 +132,7 @@ namespace gogui {
                 std::vector<json::Value> json_points;
                 for (const auto pair : displayPoints) {
                     const Point &point = pair.first;
-                    const GeoObject::Status status = pair.second;
+                    
                     const int pointId = getPointID(point);
 
                     json::object_map_t json_point;
