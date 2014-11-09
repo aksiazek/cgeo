@@ -129,7 +129,7 @@ int main() {
 
     double srodek[2]; double lewy_gorny[2];  double prawy_dolny[2];
     
-    make_unstructured_dataset("a.dat", -10, 10, 16);
+    make_unstructured_dataset("a.dat", -10, 10, 14);
     
     srodek[0] = 0; srodek[1] = 0;
     make_circular_dataset("b.dat", 0, 2*M_PI, 100, 10, srodek);
