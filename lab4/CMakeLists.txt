@@ -6,6 +6,5 @@ SET(CMAKE_CXX_FLAGS "-std=c++11 -g -Wall")
 include_directories("../gogui/cppjson/include")
 include_directories("../gogui/gogui_core/include")
 
-add_executable(datasets datasets.cpp)
 add_executable(polygon polygon.cpp)
 target_link_libraries(polygon cppjson )

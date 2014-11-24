@@ -1,4 +1,5 @@
 Usage:
+
         1) cmake CMakeLists.txt && make
         
         2) ./polygon [dataset] which emits json file, 
