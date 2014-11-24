@@ -9,50 +9,42 @@
         margin: 0px;
         border: 0;
         overflow: hidden; /*  Disable scrollbars */
-        display: block;  /* No floating content on sides */
     }
     #container
     {
-      height: 80%;
-      position: relative;
+      height: 100%;
       width: 80%;
     }
     #polygon
     {
-      height: 80%;
-      width: 80%;
+      border: 2px solid blue;
     }
-    #controls
+    #text
     {
-      bottom: 0;
-      left: 0;
-      position: absolute;
-      width: 100%;
+      height: 15%;
     }
     </style>
 </head>
  
 <body>
 
-    
-</canvas>
-
 <div id="container">
-  <canvas id='polygon'>
+  <canvas id='polygon' width="500" height="500">
   </canvas>
-  <textarea id="text" value="here are points\n" cols="100" rows="20" value=""></textarea>
+  <textarea id="text" cols="100" rows="20" value=""></textarea>
 </div>
 
 <script>
 (function() {
     var htmlCanvas = document.getElementById('polygon'),
         context = htmlCanvas.getContext('2d'),
-        htmlTop = htmlCanvas.offsetTop,
-        htmlLeft = htmlCanvas.offsetLeft,
+        htmlTop = htmlCanvas.offsetTop + htmlCanvas.parentNode.offsetTop,
+        htmlLeft = htmlCanvas.offsetLeft + htmlCanvas.parentNode.offsetLeft,
         htmlInput = document.getElementById('text'),
         prev_x = -1, prev_y = -1;
      
     initialize();
+    //alert(htmlTop + " " + htmlLeft);
      
     function initialize() {
     // Register an event listener to
@@ -63,17 +55,18 @@
     
         window.addEventListener('resize', resizeCanvas, false);
         // Draw canvas border for the first time.
-        resizeCanvas();
+        //resizeCanvas();
     }
     
     function drawPoint(event) {
-        canvas_x = parseInt(event.clientX - htmlLeft);
-        canvas_y = parseInt(event.clientY - htmlTop);
-        //alert();
-        htmlInput.value = htmlInput.value+canvas_x + " "+canvas_y+"\n";
-        if(prev_x > 0) {
+        canvas_x = event.pageX;
+        canvas_y = event.pageY;
+        
+        htmlInput.value += canvas_x + " "+canvas_y+"\n";
+        if(prev_x < 0) {
             context.beginPath();
-            context.moveTo(prev_x, prev_y);
+            context.moveTo(canvas_x, canvas_y);
+        } else {
             context.lineTo(canvas_x, canvas_y);
             context.stroke();
         }

@@ -124,20 +124,24 @@ bool neq(point_t a, point_t b)
 	return !((a.x == b.x) && (a.y == b.y));
 }
 
+double ccw(point_t p1, point_t p2, point_t p3) {
+    return (p1.x - p3.x)*(p2.y - p3.y) - (p1.y - p3.y)*(p2.x - p3.x);
+}
+
 void triangulate(vector<Line>& lines, vector<Point>& points) 
 {
 	point_t min_p = list[min];
 	point_t max_p = list[max];
     sort(list.begin(), list.end(), comparator);
-    for (int i = 0; i < n; i++) {
+    /*for (int i = 0; i < n; i++) {
 		printf("%lf %lf %d\n", list[i].x, list[i].y, list[i].in_first_branch);
 		
-	}
+	}*/
 	std::stack<point_t> stack;
 	point_t a = list.back();
-	point_t b = list.back();
-	stack.push(a);
 	list.pop_back();
+	stack.push(a);
+	point_t b = list.back();
 	stack.push(b);
 	list.pop_back();
 	
@@ -151,8 +155,7 @@ void triangulate(vector<Line>& lines, vector<Point>& points)
 		list.pop_back();
 		point_t q = stack.top();
 		
-		if((p.in_first_branch != q.in_first_branch) && neq(p, max_p) && neq(p, min_p)
-			&& neq(q, min_p) && neq(q, max_p))
+		if((p.in_first_branch != q.in_first_branch))
 		{
 			while(!stack.empty())
 			{
@@ -173,25 +176,26 @@ void triangulate(vector<Line>& lines, vector<Point>& points)
 			
 			point_t r = stack.top();
 			
-			while (angle(p,q,r) < M_PI) 
+			while ((!p.in_first_branch && (ccw(p,q,r) > 0))
+					|| (p.in_first_branch && (ccw(p,q,r) < 0)))
 			{
 				lines.push_back(Line(Point(p.x, p.y), Point(r.x, r.y)));
 				snapshot();
 				q = r;
 				
 				point_t mark = stack.top();
-				
 				setPoint(points, mark, GeoObject::Status::Processed);
 				snapshot();
 				
 				stack.pop();
 				
-				if(!stack.empty())
-					r = stack.top();
+				if(stack.empty())
+					break;
+				r = stack.top();
 			}
 		}
-		stack.push(p);
 		stack.push(q);
+		stack.push(p);
 		setPoint(points, p, GeoObject::Status::Active);
 		setPoint(points, q, GeoObject::Status::Active);
 		snapshot();
