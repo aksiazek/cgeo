@@ -130,8 +130,6 @@ double ccw(point_t p1, point_t p2, point_t p3) {
 
 void triangulate(vector<Line>& lines, vector<Point>& points) 
 {
-	point_t min_p = list[min];
-	point_t max_p = list[max];
     sort(list.begin(), list.end(), comparator);
     /*for (int i = 0; i < n; i++) {
 		printf("%lf %lf %d\n", list[i].x, list[i].y, list[i].in_first_branch);
