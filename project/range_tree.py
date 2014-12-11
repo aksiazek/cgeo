@@ -205,13 +205,13 @@ class IntervalTree:
                 (list(set_of_points[0][2]))
             return leaf
         else:
-            print "points"
+            '''print "points"
             for p in set_of_points:
-                print p
+                print p'''
             median_index = len(set_of_points) / 2
             median_value = set_of_points[median_index-1][0]
             node = Node(median_value)
-            print "median", median_value
+            #print "median", median_value
             
             lines = filter(lambda p: p[2][0] <= median_value and 
                    p[2][2] >= median_value, set_of_points)
@@ -224,14 +224,14 @@ class IntervalTree:
                 (map(lambda p: (p[1], p[2]), 
                      filter(lambda p: p[2][3] == p[1], lines)))
 
-            print "left lines"
+            '''print "left lines"
             for p in map(lambda p: (p[1], p[2]), 
                      filter(lambda p: p[2][1] == p[1], lines)):
                 print p
             print "right lines"
             for i in map(lambda p: (p[1], p[2]), 
                      filter(lambda p: p[2][3] == p[1], lines)):
-                print i
+                print i'''
             
             L = filter(lambda p: p[2][2] <= median_value, set_of_points)
             R = filter(lambda p: p[2][0] > median_value, set_of_points)
@@ -283,7 +283,7 @@ class WindowingAnswerMachine:
         self.interval_tree_horizontal = \
             IntervalTree(filter(lambda triple: triple[2][0] != triple[2][2], points))
         self.interval_tree_vertical = \
-            IntervalTree(map(lambda tri: 
+            IntervalTree(map(lambda tri: # dirty hack, treay y plane like x plane
                 (tri[1], tri[0], (tri[2][1], tri[2][0], tri[2][3], tri[2][2])), 
                 filter(lambda triple: triple[2][0] == triple[2][2], points)))
         
@@ -295,8 +295,11 @@ class WindowingAnswerMachine:
         horizontal = self.interval_tree_horizontal.query(x_range[0], y_range)
         query_results += horizontal
         #print horizontal
-        vertical = self.interval_tree_horizontal.query(y_range[0], x_range)
-        print vertical
+        vertical = self.interval_tree_vertical.query(y_range[0], x_range)
+        vertical = map(lambda quad: (quad[1], quad[0], quad[3], quad[2]), vertical)
+        #print vertical
+        query_results += vertical
+        
         query_results = list(set(query_results))
         query_results.sort()
         
@@ -309,7 +312,7 @@ if __name__ == '__main__':
     cool_thing = WindowingAnswerMachine("lines.dat")
     #single_tree = SingleDimensionRangeTree([3, 3, 10, 19, 23, 30, 37, 37, 49, 59, 62, 70, 80, 89, 93, 97])
     #print single_tree.query((25, 90))
-    for line in cool_thing.query((3.5, 4.5), (-9, 9)):
+    for line in cool_thing.query((3.1, 3.5), (-1, 0.5)):
         print line
     
     
