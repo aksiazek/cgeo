@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from collections import OrderedDict # remove dupliates preserving order
+import sys
 
 class Node:
     def __init__(self, value):
@@ -102,11 +103,6 @@ class TwoDimensionalRangeTree:
         x_points.sort()
         y_points = list(set_of_points)
         y_points.sort(key=lambda p: p[1])
-        '''for line in x_points:
-            print line
-        print "\n\n"
-        for line in y_points:
-            print line'''
         self.root = self.build_tree(x_points, y_points)
     
     def build_tree(self, points_by_x, points_by_y):
@@ -125,10 +121,6 @@ class TwoDimensionalRangeTree:
             node = Node(median_value)
             y_range_left = filter(lambda p: p[0] <= median_value, points_by_y)
             y_range_right = filter(lambda p: p[0] > median_value, points_by_y)
-            '''print "range y left ", y_range_left
-            print "range y right ", y_range_right
-            print "range x left ", points_by_x[:median_index]
-            print "range x right ", points_by_x[median_index:]'''
             node.left = self.build_tree(points_by_x[:median_index], y_range_left)
             node.right = self.build_tree(points_by_x[median_index:], y_range_right)
             node.next_level = SingleDimensionRangeTree\
@@ -205,9 +197,6 @@ class IntervalTree:
                 (list(set_of_points[0][2]))
             return leaf
         else:
-            '''print "points"
-            for p in set_of_points:
-                print p'''
             median_index = len(set_of_points) / 2
             median_value = set_of_points[median_index-1][0]
             node = Node(median_value)
@@ -223,20 +212,9 @@ class IntervalTree:
             node.right_lines = SingleDimensionRangeTree\
                 (map(lambda p: (p[1], p[2]), 
                      filter(lambda p: p[2][3] == p[1], lines)))
-
-            '''print "left lines"
-            for p in map(lambda p: (p[1], p[2]), 
-                     filter(lambda p: p[2][1] == p[1], lines)):
-                print p
-            print "right lines"
-            for i in map(lambda p: (p[1], p[2]), 
-                     filter(lambda p: p[2][3] == p[1], lines)):
-                print i'''
             
             L = filter(lambda p: p[2][2] <= median_value, set_of_points)
-            R = filter(lambda p: p[2][0] > median_value, set_of_points)
-            #print "L", L
-            #print "R", R  
+            R = filter(lambda p: p[2][0] > median_value, set_of_points) 
             
             if len(L) > 0:
                 node.left = self.build_tree(L)
@@ -310,9 +288,19 @@ class WindowingAnswerMachine:
 
 if __name__ == '__main__':
     cool_thing = WindowingAnswerMachine("lines.dat")
+    
+    try:
+        x_range = (float(sys.argv[1]), float(sys.argv[2]))
+        y_range = (float(sys.argv[3]), float(sys.argv[4]))
+
+    except (ValueError, IndexError):
+        sys.stderr.write("Usage: python %s from-x to-x from-y to-y\n" % (sys.argv[0],))
+        sys.exit(1)
+    
     #single_tree = SingleDimensionRangeTree([3, 3, 10, 19, 23, 30, 37, 37, 49, 59, 62, 70, 80, 89, 93, 97])
     #print single_tree.query((25, 90))
-    for line in cool_thing.query((3.1, 3.5), (-1, 0.5)):
+    #((3.1, 3.5), (-1, 0.5)
+    for line in cool_thing.query(x_range, y_range):
         print line
     
     

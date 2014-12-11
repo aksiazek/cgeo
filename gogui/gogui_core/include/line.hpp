@@ -35,15 +35,18 @@ namespace gogui {
         }
 
     public:
-        Line(const Point &p1, const Point &p2)
+        Line(const Point &p1, const Point &p2, std::string color = "")
                 : point1(p1), point2(p2) {
             parameters.A = getA();
             parameters.B = getB();
             parameters.C = getC();
+            if (color.length() > 0) {
+                this->setColor(color);
+            }
         }
 
-        Point point1;
-        Point point2;
+        const Point point1;
+        const Point point2;
     private:
         bool isEqualToWithOrder(const Line &that) const {
             return (point1 == that.point1) && (point2 == that.point2);

@@ -1,10 +1,13 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="utf-8">
     <title> GO-GOI Visualiser </title>
     <link rel="stylesheet" type="text/css" href="resources/style.css"/>
-    <script type="text/javascript" src="js/d3.v3.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="lib/bootstrap/css/bootstrap.min.css"/>
+    <script type="text/javascript" src="lib/d3.v3.min.js"></script>
     <script type="text/javascript" src="lib/jquery-2.1.1.js"></script>
+    <script type="text/javascript" src="lib/bootstrap/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="js/DataRepository.js"></script>
     <script type="text/javascript" src="js/Snapshot.js"></script>
     <script type="text/javascript" src="js/SnapshotsIterator.js"></script>
@@ -13,33 +16,219 @@
     <script type="text/javascript" src="js/InputDataReader.js"></script>
 
     <script type="application/javascript">
-        $("document").ready(registerFileInputHandler);
+        var clickHandler = null;
+
+        function fixOffsets(event) {
+            if (event.offsetX == undefined) // this works for Firefox
+            {
+                event.offsetX = event.pageX - $(event.target).offset().left;
+                event.offsetY = event.pageY - $(event.target).offset().top;
+            }
+            return event;
+        }
+
+        function addSinglePoint(xOffset, yOffset) {
+            appendPoint(ScalingContext.svgsXtoReal(xOffset), ScalingContext.svgsYtoReal(yOffset), '', 'fill: black; stroke: black');
+            $('.canvas-area').html($('.canvas-area').html());
+            onloadInitialization();
+        }
+
+        var lastXOffset = null;
+        var lastYOffset = null;
+        function addConnectedPoint(xOffset, yOffset) {
+            appendPoint(ScalingContext.svgsXtoReal(xOffset), ScalingContext.svgsYtoReal(yOffset), '', 'fill: black; stroke: black');
+            if (lastXOffset != null && lastYOffset != null) {
+                appendLine(ScalingContext.svgsXtoReal(lastXOffset), ScalingContext.svgsYtoReal(lastYOffset), ScalingContext.svgsXtoReal(xOffset), ScalingContext.svgsYtoReal(yOffset), '', 'fill: black; stroke: black');
+            }
+            lastXOffset = xOffset;
+            lastYOffset = yOffset;
+            $('.canvas-area').html($('.canvas-area').html());
+            onloadInitialization();
+        }
+
+        var firstXOffset = null;
+        var firstYOffset = null;
+        function addConnectedPointToBeClosed(xOffset, yOffset) {
+            addConnectedPoint(xOffset, yOffset);
+            if (firstXOffset == null && firstYOffset == null) {
+                firstXOffset = xOffset;
+                firstYOffset = yOffset;
+            }
+        }
+
+        function clearClickHandler() {
+            if (clickHandler == addConnectedPoint) {
+                lastXOffset = null;
+                lastYOffset = null;
+            } else if (clickHandler == addConnectedPointToBeClosed) {
+                addConnectedPointToBeClosed(firstXOffset, firstYOffset);
+                firstXOffset = null;
+                firstYOffset = null;
+                lastXOffset = null;
+                lastYOffset = null;
+            }
+            clickHandler = null;
+        }
+
+        onloadInitialization = function () {
+            registerFileInputHandler();
+            $('svg').on('click', function (event) {
+                event = fixOffsets(event);
+                if (clickHandler) {
+                    clickHandler(event.offsetX, event.offsetY);
+                }
+            });
+            $('#collapseOne').on('show.bs.collapse', function (e) {
+                $('#parseInputButton').show();
+            });
+            $('#collapseOne').on('hide.bs.collapse', function (e) {
+                $('#parseInputButton').hide()
+            })
+        };
+        $("document").ready(onloadInitialization);
+
     </script>
 </head>
 
 <body onload="initJS();">
+<div class="container">
+    <div class="main col-sm-8">
+        <div class="row">
+            <div class="btn-group-vertical pull-left" style="padding-top: 10px">
+                <a type="button" class="btn btn-default" onclick="ScalingContext.zoomIn();">
+                    <span class="glyphicon glyphicon-zoom-in"></span>
+                </a>
+                <a type="button" class=" btn btn-default" onclick="ScalingContext.zoomOut();">
+                    <span class="glyphicon glyphicon-zoom-out"></span>
+                </a>
+                <a type="button" class="btn btn-default" onclick="ScalingContext.moveLeft();">
+                    <span class="glyphicon glyphicon-arrow-left"></span>
+                </a>
+                <a type="button" class=" btn btn-default" onclick="ScalingContext.moveRight();">
+                    <span class="glyphicon glyphicon-arrow-right"></span>
+                </a>
+                <a type="button" class=" btn btn-default" onclick="ScalingContext.moveUp();">
+                    <span class="glyphicon glyphicon-arrow-up"></span>
+                </a>
+                <a type="button" class=" btn btn-default" onclick="ScalingContext.moveDown();">
+                    <span class="glyphicon glyphicon-arrow-down"></span>
+                </a>
+            </div>
+            <div class="canvas-area" style="margin-left: 50px">
+                <svg class="my-canvas"></svg>
+            </div>
+        </div>
+        <div class="row">
+            <div class="pull-left ">
 
-<div class="main">
-
-    <div class="canvas-area">
-        <svg class="my-canvas"></svg>
-    </div>
-
-    <p class="counterLabel"></p>
-
-    <div class="buttons-bar bar">
-        <button type="button" class="backwardButton btn btn-default" onclick="oneBackward();"> Wstecz</button>
-        <button type="button" class="resetButton btn btn-default" onclick="reset();"> Reset</button>
-        <button type="button" class="forwardButton btn btn-default" onclick="oneForward();"> Dalej</button>
-        <button type="button" id="playButton" class=" btn btn-default" onclick="play(this);"> Odtwarzaj</button>
-        <button type="button" id="parseInputButton" class=" btn btn-default" onclick="parseInput();"> Wklej dane
-        </button>
-    </div>
-    <div class="bar">
-        <input type="file" id="upload"/>
-    </div>
-    <div class="bar">
-        <textarea id="inputArea"> Insert data... </textarea>
+            </div>
+            <div class="input-group pull-right" id="counterWidget">
+                <span class="input-group-btn">
+                    <a type="button" class="resetButton btn btn-default"
+                       onclick="view($('#currentSnapshotInput').val());">
+                        <span class="glyphicon glyphicon-share-alt" title="Skocz do wybranego snapshota"></span>
+                    </a>
+                </span>
+                <span class="input-group" id="navigationBar">
+                    <input type="text" id="currentSnapshotInput" class="form-control">
+                    <span id="maxSnapshotCount" class="input-group-addon"></span>
+                </span>
+            </div>
+            <div class="btn-group pull-left">
+                <a type="button" id="fileInputWrapper" class="btn btn-default"
+                   onclick="$(this).parent().find('input')[0].click()">
+                    <input type="file" class="custom-file-input" id="upload"/>
+                    <span class="glyphicon glyphicon-folder-open"></span> Załaduj plik
+                </a>
+                <a class="backwardButton btn btn-default" onclick="oneBackward();">
+                    <span class="glyphicon glyphicon-step-backward"></span>
+                </a>
+                <a type="button" class="resetButton btn btn-default" onclick="reset();">
+                    <span class="glyphicon glyphicon-stop"></span>
+                </a>
+                <a type="button" class="forwardButton btn btn-default" onclick="oneForward();">
+                    <span class="glyphicon glyphicon-step-forward"></span>
+                </a>
+                <a type="button" id="playButton" class=" btn btn-default" onclick="play(this);">
+                    <span class="glyphicon glyphicon-play"></span>
+                </a>
+                <a type="button" id="pauseButton" class=" btn btn-default" onclick="stop(this);">
+                    <span class="glyphicon glyphicon-pause"></span>
+                </a>
+            </div>
+        </div>
+        <div class="row">
+            <div class="btn-group btn-group-justified" data-toggle="buttons">
+                <label class="btn btn-primary " onclick="getBlankCanvas();">
+                    <input type="radio" name="options" autocomplete="off" checked> Przygotuj puste
+                </label>
+                <label class="btn btn-primary" onclick="clickHandler = addSinglePoint;">
+                    <input type="radio" name="options" autocomplete="off"> Dodawaj punkty
+                </label>
+                <label class="btn btn-primary" onclick="clickHandler = addConnectedPoint;">
+                    <input type="radio" name="options" autocomplete="off"> Dodawaj łamaną
+                </label>
+                <label class="btn btn-primary" onclick="clickHandler = addConnectedPointToBeClosed;">
+                    <input type="radio" name="options" autocomplete="off"> Dodawaj zamknietą
+                </label>
+                <label class="btn btn-primary active" onclick="clearClickHandler();">
+                    <input type="radio" name="options" autocomplete="off" checked> Zakończ dodawanie
+                </label>
+            </div>
+        </div>
+        <div class="row">
+            <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+                <div class="panel panel-default">
+                    <div class="panel-heading" role="tab" id="headingOne">
+                        <h4 class="panel-title">
+                            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne"
+                               aria-controls="collapseOne">
+                                <span class="glyphicon glyphicon-align-left"></span>
+                                Wklejanie danych
+                            </a>
+                         <span id="parseInputButton" class="pull-right label label-success" style="display: none;"
+                               onclick="parseInput($('#inputArea').val());"> Załaduj
+                        </span>
+                        </h4>
+                    </div>
+                    <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne"
+                         onchange="console.log('aa')">
+                        <textarea id="inputArea" class="form-control" rows="6"></textarea>
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading" role="tab" id="headingTwo">
+                        <h4 class="panel-title">
+                            <a class="collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo"
+                               aria-expanded="false" aria-controls="collapseTwo"
+                               onclick="$('#points').text(getPointsAsText())">
+                                <span class="glyphicon glyphicon-save"></span>
+                                Zrzuć punkty
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+                        <pre id="points"></pre>
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading" role="tab" id="headingThree">
+                        <h4 class="panel-title">
+                            <a class="collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapseThree"
+                               aria-expanded="false" aria-controls="collapseThree"
+                               onclick=" $('#lines').text(getLinesAsText());">
+                                <span class="glyphicon glyphicon-save"></span>
+                                Zrzuć linie
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="collapseThree" class="panel-collapse collapse" role="tabpanel"
+                         aria-labelledby="headingThree">
+                        <pre id="lines"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 

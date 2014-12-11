@@ -109,13 +109,13 @@ namespace gogui {
             static std::string statusToString(GeoObject::Status s) {
                 switch (s) {
                     case GeoObject::Status::Normal:
-                        return "normal";
+                        return "black";
                     case GeoObject::Status::Active:
-                        return "active";
+                        return "red";
                     case GeoObject::Status::Processed:
-                        return "processed";
+                        return "gray";
                 }
-                return "error";
+                return "do-not-warn-on-compile";
             }
 
             json::Value getJSONState(const History::State &state) {
@@ -132,12 +132,11 @@ namespace gogui {
                 std::vector<json::Value> json_points;
                 for (const auto pair : displayPoints) {
                     const Point &point = pair.first;
-                    
                     const int pointId = getPointID(point);
 
                     json::object_map_t json_point;
                     json_point["pointID"] = pointId;
-                    json_point["style"] = statusToString(point.getStatus());
+                    json_point["color"] = point.getColor().length() > 0 ? point.getColor() : statusToString(point.getStatus());
                     json_points.push_back(json_point);
                 }
                 json_state["points"] = json_points;
@@ -146,7 +145,7 @@ namespace gogui {
                 for (const Line &line : state.getLines()) {
                     json::object_map_t json_line;
                     json_line["lineID"] = (int) getLineID(line);
-                    json_line["style"] = statusToString(line.getStatus());
+                    json_line["color"] = line.getColor().length() > 0 ? line.getColor() : statusToString(line.getStatus());
                     json_lines.push_back(json_line);
                 }
                 json_state["lines"] = json_lines;

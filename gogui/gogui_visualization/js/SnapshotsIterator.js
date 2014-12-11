@@ -28,6 +28,15 @@ SnapshotsIterator.prototype = {
         }
     },
 
+    getCurrent: function () {
+        return this.dataRepository.getSnapshot(this.currentSnapshot);
+    },
+
+    getByNumber: function (number) {
+        this.currentSnapshot = number;
+        return this.dataRepository.getSnapshot(number);
+    },
+
     getPrevious: function () {
         if (!this.hasPrevious()) {
             return null;
