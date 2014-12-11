@@ -25,7 +25,6 @@ inline void make_vertical_lines(int num_lines)
 	    if(one > two)
 	        swap(one, two);
         fprintf(file, "%lf %lf %lf %lf\n", x, one, x, two);
-        printf("%lf %lf %lf %lf\n", x, one, x, two);
 	}
 }
 
@@ -39,16 +38,19 @@ inline void make_horizontal_lines(int num_lines)
 	    if(one > two)
 	        swap(one, two);
         fprintf(file, "%lf %lf %lf %lf\n", one, y, two, y);
-        printf("%lf %lf %lf %lf\n", one, y, two, y);
 	}
 }
  
-int main() 
+int main(int argc, char* argv[]) 
 {
+    if(argc < 3) {
+        printf("Usage: %s how-many-vertical-lines how-many-horizontal-lines\n", argv[0]);
+        exit(-1);
+    }
     file = fopen(filename, "w");
     if(file != NULL) {
-        make_vertical_lines(10);
-        make_horizontal_lines(10);
+        make_vertical_lines(atoi(argv[1]));
+        make_horizontal_lines(atoi(argv[2]));
         fclose(file);
     }
 
