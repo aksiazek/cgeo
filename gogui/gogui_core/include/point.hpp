@@ -11,14 +11,8 @@ namespace gogui {
     public:
         double x, y;
 
-        constexpr Point(const double &x1, const double &y1) : x(x1), y(y1) {
-        }
-
-        Point(const double &x1, const double &y1, std::string color) : x(x1), y(y1) {
-            this->setColor(color);
-        }
-
-        constexpr Point() : x(0), y(0) {
+        constexpr Point(const double &x1, const double &y1)
+                : x(x1), y(y1) {
         }
 
         bool operator==(const Point &that) const {

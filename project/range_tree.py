@@ -2,6 +2,7 @@
 
 from collections import OrderedDict # remove dupliates preserving order
 import sys
+from numpy.f2py.auxfuncs import throw_error
 
 class Node:
     def __init__(self, value):
@@ -292,14 +293,16 @@ if __name__ == '__main__':
     try:
         x_range = (float(sys.argv[1]), float(sys.argv[2]))
         y_range = (float(sys.argv[3]), float(sys.argv[4]))
-
+        if x_range[0] > x_range[1] or y_range[0] > y_range[1]:
+            raise ValueError()
     except (ValueError, IndexError):
         sys.stderr.write("Usage: python %s from-x to-x from-y to-y\n" % (sys.argv[0],))
         sys.exit(1)
     
     #single_tree = SingleDimensionRangeTree([3, 3, 10, 19, 23, 30, 37, 37, 49, 59, 62, 70, 80, 89, 93, 97])
     #print single_tree.query((25, 90))
-    #((3.1, 3.5), (-1, 0.5)
+    #((3.1, 3.5), (-1, 0.5) (3.1, 3.5) (-1.0, 9.0)
+    print x_range[0], x_range[1], y_range[0], y_range[1]
     for line in cool_thing.query(x_range, y_range):
         print line
     

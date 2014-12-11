@@ -20,16 +20,16 @@ function DataRepository(pointsParam, linesParam) {
 
     for (var i = 0; i < this.points.length; i++) {
 
-        if (this.xMax == null || this.points[i].x > this.xMax) {
+        if (this.points[i].x > this.xMax) {
             this.xMax = this.points[i].x;
         }
-        if (this.xMin == null || this.points[i].x < this.xMin) {
+        if (this.points[i].x < this.xMin) {
             this.xMin = this.points[i].x;
         }
-        if (this.yMax == null || this.points[i].y > this.yMax) {
+        if (this.points[i].y > this.yMax) {
             this.yMax = this.points[i].y;
         }
-        if (this.yMin == null || this.points[i].y < this.yMin) {
+        if (this.points[i].y < this.yMin) {
             this.yMin = this.points[i].y;
         }
 

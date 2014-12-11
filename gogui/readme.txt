@@ -8,11 +8,6 @@ Zmiany w stosunku do wersji 'aszady'
 - naprawiona orientacja ("góra na górze", zero nie jest wyżej niż jedynka)
 - dumpowanie widocznych plików i linii
 - dodawanie swobodnych punktów, łamanych i łamanych zamkniętyh (potem można to zdumpować i wykorzystać)
-- zoomowanie
-- utrzymywanie proporcji
-- nowy wygląd
-- kolory do linii/punktów (obok statusów)
-- skakanie do wybranego snapshota
 
 
 

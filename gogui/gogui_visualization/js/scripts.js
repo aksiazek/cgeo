@@ -1,4 +1,3 @@
-var SVG_CANVAS_SELECTOR = ".my-canvas";
 var fileDataReader = null;
 var inputDataReader = null;
 var data = null;
@@ -8,90 +7,29 @@ var onloadInitialization = function () {
 };
 
 var ScalingContext = {
-    yMax: 0,
-    yMin: 0,
-    xMin: 0,
-    xMax: 0,
-    realWidth: 0,
-    realHeight: 0,
+    yMax: null,
+    yMin: null,
+    xMin: null,
+    xMax: null,
     MARGIN: 50,
     AXES_MARGIN: 12,
-    ZOOM_SPEED: 0.1,
-    MOVE_SPEED: 0.1,
-    zoom: function (speed) {
-        var xdiff = this.xMax - this.xMin;
-        this.xMax -= xdiff * speed;
-        this.xMin += xdiff * speed;
-        var ydiff = this.yMax - this.yMin;
-        this.yMax -= ydiff * speed;
-        this.yMin += ydiff * speed;
-        drawSnapshot(iterator.getCurrent());
-    },
-    move: function (speedX, speedY) {
-        var xdiff = this.xMax - this.xMin;
-        this.xMax += xdiff * speedX;
-        this.xMin += xdiff * speedX;
-        var ydiff = this.yMax - this.yMin;
-        this.yMax += ydiff * speedY;
-        this.yMin += ydiff * speedY;
-        drawSnapshot(iterator.getCurrent());
-    },
-    zoomIn: function () {
-        this.zoom(this.ZOOM_SPEED);
-    },
-    zoomOut: function () {
-        this.zoom(-this.ZOOM_SPEED);
-    },
-    moveLeft: function () {
-        this.move(-this.MOVE_SPEED, 0);
-    },
-    moveRight: function () {
-        this.move(this.MOVE_SPEED, 0);
-    },
-    moveDown: function () {
-        this.move(0, -this.MOVE_SPEED);
-    },
-    moveUp: function () {
-        this.move(0, this.MOVE_SPEED);
-    },
-    setRanges: function (_yMax, _yMin, _xMin, _xMax) {
-        this.xMin = _xMin;
-        this.xMax = _xMax;
-        this.yMax = _yMax;
-        this.yMin = _yMin;
-
-        this.realWidth = $(SVG_CANVAS_SELECTOR).parent().width() - 2 * this.MARGIN;
-        this.realHeight = $(SVG_CANVAS_SELECTOR).parent().height() - 2 * this.MARGIN;
-    },
-    fixupRangesToKeepRatio: function (svgs) {
-        var dx = this.xMax - this.xMin;
-        var dy = this.yMax - this.yMin;
-        var xScale = dx / this.realWidth;
-        var yScale = dy / this.realHeight;
-
-        if (xScale > yScale) {
-            var diff = dy * (xScale / yScale - 1);
-            this.yMax = this.yMax + diff / 2;
-            this.yMin = this.yMin - diff / 2;
-        } else {
-            var diff = dx * (yScale / xScale - 1);
-            this.xMax = this.xMax + diff / 2;
-            this.xMin = this.xMin - diff / 2;
-        }
-    },
     svgsXtoReal: function (svgs) {
-        return (svgs - this.MARGIN) * (this.xMax - this.xMin) / this.realWidth + this.xMin;
+        var w = $(".canvas-area ").width() - 2 * this.MARGIN;
+        return (svgs - this.MARGIN) * (this.xMax - this.xMin) / w + this.xMin;
     },
     svgsYtoReal: function (svgs) {
-        return -1 * (svgs - this.MARGIN) * (this.yMax - this.yMin) / this.realHeight + this.yMax;
+        var h = $(".canvas-area ").height() - 2 * this.MARGIN;
+        return -1 * (svgs - this.MARGIN) * (this.yMax - this.yMin) / h + this.yMax;
     },
     realXtoSvgs: function (_x) {
         var tmp = (_x - this.xMin) / (this.xMax - this.xMin);
-        return (tmp * this.realWidth) + this.MARGIN;
+        var w = $(".canvas-area ").width() - 2 * this.MARGIN;
+        return (tmp * w) + this.MARGIN;
     },
     realYtoSvgs: function (_y) {
         var tmp = ( this.yMax - _y) / (this.yMax - this.yMin);
-        return (tmp * this.realHeight) + this.MARGIN;
+        var h = $(".canvas-area ").height() - 2 * this.MARGIN;
+        return (tmp * h) + this.MARGIN;
     }
 };
 
@@ -103,8 +41,6 @@ function initJS(filename) {
         _that.data.addSnapshots(_that.fileDataReader.getSnapshots());
         _that.iterator = new SnapshotsIterator(_that.data);
         _that.updateLabel();
-        ScalingContext.setRanges(data.getYMax(), data.getYMin(), data.getXMin(), data.getXMax());
-        ScalingContext.fixupRangesToKeepRatio();
     };
     fileDataReader = new FileDataReader(filename, callbackFunction, windowContext);
 }
@@ -112,7 +48,7 @@ function initJS(filename) {
 function appendYAxis(svgContainer) {
     var yAxisScale = d3.scale.linear()
         .domain([ScalingContext.yMax, ScalingContext.yMin])
-        .range([ScalingContext.MARGIN, $(SVG_CANVAS_SELECTOR).height() - ScalingContext.MARGIN]);
+        .range([ScalingContext.MARGIN, $(".my-canvas").height() - ScalingContext.MARGIN]);
     var yAxis = d3.svg.axis().scale(yAxisScale).orient("left");
     svgContainer.append("g")
         .attr("class", "axis axis-vertical")
@@ -123,11 +59,11 @@ function appendYAxis(svgContainer) {
 function appendXAxis(svgContainer) {
     var xAxisScale = d3.scale.linear()
         .domain([ScalingContext.xMin, ScalingContext.xMax])
-        .range([ScalingContext.MARGIN, $(SVG_CANVAS_SELECTOR).width() - ScalingContext.MARGIN]);
+        .range([ScalingContext.MARGIN, $(".my-canvas").width() - ScalingContext.MARGIN]);
     var xAxis = d3.svg.axis().scale(xAxisScale).orient("bottom");
     svgContainer.append("g")
         .attr("class", "axis axis-horizontal")
-        .attr("transform", "translate(0," + ($(SVG_CANVAS_SELECTOR).height() - ScalingContext.MARGIN + ScalingContext.AXES_MARGIN) + ")")
+        .attr("transform", "translate(0," + ($(".my-canvas").height() - ScalingContext.MARGIN + ScalingContext.AXES_MARGIN) + ")")
         .call(xAxis);
 }
 
@@ -139,7 +75,7 @@ function initWithFile() {
     initJS(tmppath);
 }
 
-function appendLine(realX1, realY1, realX2, realY2, lineID, style) {
+function appendLine(realX1, realY1, realX2, realY2, lineID, clazz) {
     var x1 = ScalingContext.realXtoSvgs(realX1);
     var y1 = ScalingContext.realYtoSvgs(realY1);
     var x2 = ScalingContext.realXtoSvgs(realX2);
@@ -148,8 +84,8 @@ function appendLine(realX1, realY1, realX2, realY2, lineID, style) {
     var lineHTMLTagOpen = "<line id=\"";
     var lineHTMLTagClose = "\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"0\" />";
 
-    $(SVG_CANVAS_SELECTOR).append(lineHTMLTagOpen + lineID + lineHTMLTagClose);
-    var tag = $(SVG_CANVAS_SELECTOR).children().last();
+    $(".my-canvas").append(lineHTMLTagOpen + lineID + lineHTMLTagClose);
+    var tag = $(".my-canvas").children().last();
 
     tag.attr('x1', x1.toString());
     tag.attr('y1', y1.toString());
@@ -161,18 +97,18 @@ function appendLine(realX1, realY1, realX2, realY2, lineID, style) {
     tag.attr('realy2', realY2);
 
     tag.attr('gogui', 'line');
-    tag.attr('style', style);
+    tag.attr('class', clazz);
 }
 
-function appendPoint(realX, realY, pointID, style) {
+function appendPoint(realX, realY, pointID, clazz) {
     var x = ScalingContext.realXtoSvgs(realX);
     var y = ScalingContext.realYtoSvgs(realY);
 
     var pointHTMLTagOpen = "<circle id=\"";
     var pointHTMLTagClose = "\" cx=\"0\" cy=\"0\" r=\"0\" />";
 
-    $(SVG_CANVAS_SELECTOR).append(pointHTMLTagOpen + pointID + pointHTMLTagClose);
-    var tag = $(SVG_CANVAS_SELECTOR).children().last();
+    $(".my-canvas").append(pointHTMLTagOpen + pointID + pointHTMLTagClose);
+    var tag = $(".my-canvas").children().last();
 
     tag.attr('cx', x.toString());
     tag.attr('cy', y.toString());
@@ -183,22 +119,33 @@ function appendPoint(realX, realY, pointID, style) {
     tag.attr('realy', realY);
     tag.append('<title>(' + realX + ', ' + realY + ')</title>');
     tag.attr('gogui', 'point');
-    tag.attr('style', style);
+    tag.attr('class', clazz);
 
 }
 
 function drawSnapshot(snapshot) {
-    $(SVG_CANVAS_SELECTOR).empty();
+    $(".my-canvas").empty();
 
     var snapshotPoints = snapshot.getPoints();
     var snapshotLines = snapshot.getLines();
+
+    ScalingContext.yMax = data.getYMax();
+    ScalingContext.yMin = data.getYMin();
+    ScalingContext.xMin = data.getXMin();
+    ScalingContext.xMax = data.getXMax();
 
     // draw points
     for (var i = 0; i < snapshotPoints.length; ++i) {
         var p = data.getPointByIndex(snapshotPoints[i].pointID);
         var pointID = "point-" + i.toString();
-        var style = "fill: " + snapshotPoints[i].color + "; stroke: " + snapshotPoints[i].color;
-        appendPoint(p.x, p.y, pointID, style);
+        if (snapshotPoints[i].style == "active") {
+            clazz = 'active-point';
+        } else if (snapshotPoints[i].style == "processed") {
+            clazz = 'processed-point';
+        } else {
+            clazz = 'normal-point';
+        }
+        appendPoint(p.x, p.y, pointID, clazz);
     }
 
 
@@ -207,11 +154,17 @@ function drawSnapshot(snapshot) {
         var p1 = data.getPointByIndex(data.getLineByIndex(snapshotLines[i].lineID).p1);
         var p2 = data.getPointByIndex(data.getLineByIndex(snapshotLines[i].lineID).p2);
         var lineID = "line-" + i.toString();
-        var style = "fill: " + snapshotLines[i].color + "; stroke: " + snapshotLines[i].color;
-        appendLine(p1.x, p1.y, p2.x, p2.y, lineID, style);
+        if (snapshotLines[i].style == "normal") {
+            clazz = 'normal-line';
+        } else if (snapshotLines[i].style == "processed") {
+            clazz = 'processed-line';
+        } else {
+            clazz = 'active-line';
+        }
+        appendLine(p1.x, p1.y, p2.x, p2.y, lineID, clazz);
     }
 
-    var svgContainer = d3.select(SVG_CANVAS_SELECTOR);
+    var svgContainer = d3.select(".my-canvas");
     appendXAxis(svgContainer);
     appendYAxis(svgContainer);
 
@@ -239,8 +192,7 @@ function getDisplayedLines() {
 }
 
 function getBlankCanvas() {
-    parseInput('{"history": [{"lines": [], "points": []}], "lines": [], "points": [{"x": 0, "y": 0},{"x": 1000, "y": 1000}]}');
-    oneForward();
+    parseInput('{"history": [{"lines": [], "points": []}], "lines": [], "points": [{"x": 1000, "y": 1000}]}');
 }
 
 function getPointsAsText() {
@@ -282,32 +234,32 @@ function oneBackward() {
 }
 
 function reset() {
-    $(SVG_CANVAS_SELECTOR).empty();
+    $(".my-canvas").empty();
     iterator.reset();
     updateLabel();
 }
 
 function updateLabel() {
-    $("#currentSnapshotInput").val(iterator.getSnapshotIndex());
-    $("#maxSnapshotCount").text(data.getNumberOfSnapshots());
-}
-
-function stop() {
-    playing = false;
+    $(".counterLabel").empty();
+    var labelText = "";
+    labelText = "" + ( iterator.getSnapshotIndex() + 1 ).toString() + " / " + data.getNumberOfSnapshots().toString();
+    $(".counterLabel").append(labelText);
 }
 
 function play() {
-    animationPlayer();
-    playing = true;
-}
-
-function view(snapshotNumber) {
-    drawSnapshot(iterator.getByNumber(snapshotNumber));
+    if (playing) {
+        $("#playButton").html('Odtwarzaj');
+    } else {
+        $("#playButton").html('Zatrzymaj');
+        animationPlayer();
+    }
+    playing = !playing;
 }
 
 function animationPlayer() {
     if (!iterator.hasNext()) {
         playing = false;
+        $("#playButton").html('Odtwarzaj');
         return;
     } else {
         setTimeout(function () {
@@ -323,14 +275,14 @@ function parseInput(text) {
     inputDataReader = new InputDataReader(text);
     data = new DataRepository(inputDataReader.getPoints(), inputDataReader.getLines());
 
-    data.addSnapshots(inputDataReader.getSnapshots());
+    setTimeout(function () {
+        data.addSnapshots(inputDataReader.getSnapshots());
+        updateLabel();
+    }, 150);
 
     iterator = new SnapshotsIterator(data);
     iterator.reset();
     updateLabel();
-
-    ScalingContext.setRanges(data.getYMax(), data.getYMin(), data.getXMin(), data.getXMax());
-    ScalingContext.fixupRangesToKeepRatio();
 }
 
 

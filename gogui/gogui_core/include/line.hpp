@@ -35,14 +35,11 @@ namespace gogui {
         }
 
     public:
-        Line(const Point &p1, const Point &p2, std::string color = "")
+        Line(const Point &p1, const Point &p2)
                 : point1(p1), point2(p2) {
             parameters.A = getA();
             parameters.B = getB();
             parameters.C = getC();
-            if (color.length() > 0) {
-                this->setColor(color);
-            }
         }
 
         const Point point1;
