@@ -19,6 +19,13 @@ void load_dataset(vector<Line>& lines, vector<Point>& points, bool is_result) {
 		                lines.push_back(Line (first, second));   
 	                }
 	        } else {
+	                while(fscanf(original_data, "%lf %lf %lf %lf", &x, &y, &a, &b) == 4) {
+		                // do NOT use feof
+		                Point first(a, b), second(x, y);
+		                points.push_back(first);
+		                points.push_back(second);
+		                lines.push_back(Line (first, second));   
+	                }
 	                if(scanf("%lf %lf %lf %lf", &x, &y, &a, &b) == 4) {
 	                        Point first(x, a), second(x, b), third(y, a), fourth(y, b);
 	                        points.push_back(first);
@@ -30,17 +37,17 @@ void load_dataset(vector<Line>& lines, vector<Point>& points, bool is_result) {
 		                third.setStatus(GeoObject::Status::Processed);
 		                fourth.setStatus(GeoObject::Status::Processed);
 		                Line one(first, second);
-		                lines.push_back(one);
 		                one.setStatus(GeoObject::Status::Processed);
+		                lines.push_back(one);
 		                Line two(second, fourth);
-		                lines.push_back(two);
 		                two.setStatus(GeoObject::Status::Processed);
+		                lines.push_back(two);
 		                Line three(first, third);
-		                lines.push_back(three);
 		                three.setStatus(GeoObject::Status::Processed);
+		                lines.push_back(three);
 		                Line four(third, fourth);
-		                lines.push_back(four);
 		                four.setStatus(GeoObject::Status::Processed);
+		                lines.push_back(four);  
 	                }
 	                while(scanf("%lf %lf %lf %lf", &x, &y, &a, &b) == 4) {
 		                // do NOT use feof
@@ -48,17 +55,9 @@ void load_dataset(vector<Line>& lines, vector<Point>& points, bool is_result) {
 		                points.push_back(first);
 		                points.push_back(second);
 		                Line crossing(first, second);
-		                lines.push_back(Line (first, second));
 		                crossing.setStatus(GeoObject::Status::Processed);
+		                lines.push_back(crossing);
 	                }
-	                while(fscanf(original_data, "%lf %lf %lf %lf", &x, &y, &a, &b) == 4) {
-		                // do NOT use feof
-		                Point first(a, b), second(x, y);
-		                points.push_back(first);
-		                points.push_back(second);
-		                lines.push_back(Line (first, second));   
-	                }
-	
 	        }
 	        fclose(original_data);
 	}

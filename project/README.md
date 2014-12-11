@@ -3,7 +3,7 @@ Jednorazowa kompilacja:
 
 
 Generujemy dane:
-        ./datasets 10 14
+        ./datasets 10 8
         są one zapisywane w pliku lines.dat, jeżeli chcemy dodać ręcznie odcinki, można zmodyfikować plik   
 
 Rysujemy wygenerowane odcinki

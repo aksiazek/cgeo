@@ -74,8 +74,8 @@ textarea {
 }
 
 .processed-point {
-    stroke: gray;
-    fill: gray;
+    stroke: green;
+    fill: green;
 }
 
 .normal-line {
@@ -84,8 +84,8 @@ textarea {
 }
 
 .processed-line {
-    stroke: gray;
-    fill: gray;
+    stroke: green;
+    fill: green;
 }
 
 .active-line {
