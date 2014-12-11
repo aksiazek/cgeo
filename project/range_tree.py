@@ -194,37 +194,44 @@ class TwoDimensionalRangeTree:
 class IntervalTree:
     def __init__(self, points):
         points.sort(key=lambda p: p[0])
-        #for line in set_of_points:
-        #    print line
         self.root = self.build_tree(points)
     
     def build_tree(self, set_of_points):
         if len(set_of_points) == 1:
             leaf = Node(set_of_points[0][0])
-            leaf.left_lines = set_of_points[0][2]
-            leaf.right_lines = set_of_points[0][2]
+            leaf.left_lines = SingleDimensionRangeTree\
+                (list(set_of_points[0][2]))
+            leaf.right_lines = SingleDimensionRangeTree\
+                (list(set_of_points[0][2]))
             return leaf
         else:
-            '''print "points"
+            print "points"
             for p in set_of_points:
-                print p'''
+                print p
             median_index = len(set_of_points) / 2
             median_value = set_of_points[median_index-1][0]
             node = Node(median_value)
-            #print "median", median_value
+            print "median", median_value
             
-            lines_only = map(lambda p: p[2], set_of_points)
-            node.left_lines = list(OrderedDict.fromkeys(
-                    filter(lambda p: p[0] <= median_value and 
-                   p[2] >= median_value, lines_only)))
-            node.right_lines = list(node.left_lines)
-            node.right_lines.sort(key=lambda p: p[2], reverse=True)
-            '''print "left lines"
-            for p in node.left_lines:
+            lines = filter(lambda p: p[2][0] <= median_value and 
+                   p[2][2] >= median_value, set_of_points)
+            
+            node.left_lines = SingleDimensionRangeTree\
+                (map(lambda p: (p[1], p[2]), 
+                     filter(lambda p: p[2][1] == p[1], lines)))
+                
+            node.right_lines = SingleDimensionRangeTree\
+                (map(lambda p: (p[1], p[2]), 
+                     filter(lambda p: p[2][3] == p[1], lines)))
+
+            print "left lines"
+            for p in map(lambda p: (p[1], p[2]), 
+                     filter(lambda p: p[2][1] == p[1], lines)):
                 print p
             print "right lines"
-            for i in node.right_lines:
-                print i'''
+            for i in map(lambda p: (p[1], p[2]), 
+                     filter(lambda p: p[2][3] == p[1], lines)):
+                print i
             
             L = filter(lambda p: p[2][2] <= median_value, set_of_points)
             R = filter(lambda p: p[2][0] > median_value, set_of_points)
@@ -237,28 +244,27 @@ class IntervalTree:
                 node.right = self.build_tree(R)
             return node
 
-    def query(self, x_q):
+    def query(self, x_q, y_range):
         result_set = []
-        self.visit(self.root, x_q, result_set)
+        self.visit(self.root, x_q, y_range, result_set)
         return result_set
 
-    def visit(self, root, x_q, result_set):
+    def visit(self, root, x_q, y_range, result_set):
         if root.isLeaf():
-            if root.left_lines[0] <= x_q and x_q <= root.left_lines[2]:
-                result_set.append(root.left_lines)
+            for line in root.left_lines.query(y_range):
+                if (line[0] <= x_q and x_q <= line[2]):
+                    result_set.append(line)
         else:
             if x_q < root.value:
-                for line in root.left_lines:
-                    if not (line[0] <= x_q and x_q <= line[2]):
-                        break
-                    result_set.append(line)
-                self.visit(root.left, x_q, result_set)
+                for line in root.left_lines.query(y_range):
+                    if (line[0] <= x_q and x_q <= line[2]):
+                        result_set.append(line)
+                self.visit(root.left, x_q, y_range, result_set)
             else:
-                for line in root.right_lines:
-                    if not (line[0] <= x_q and x_q <= line[2]):
-                        break
-                    result_set.append(line)
-                self.visit(root.right, x_q, result_set)
+                for line in root.right_lines.query(y_range):
+                    if (line[0] <= x_q and x_q <= line[2]):
+                        result_set.append(line)
+                self.visit(root.right, x_q, y_range, result_set)
 
 class WindowingAnswerMachine:
     def __init__(self, filename):
@@ -276,29 +282,34 @@ class WindowingAnswerMachine:
         self.double_tree = TwoDimensionalRangeTree(points)
         self.interval_tree_horizontal = \
             IntervalTree(filter(lambda triple: triple[2][0] != triple[2][2], points))
-        # self.interval_tree_vertical = \
-        #     IntervalTree(filter(lambda triple: triple[2][0] == triple[2][2], points))
+        self.interval_tree_vertical = \
+            IntervalTree(map(lambda tri: 
+                (tri[1], tri[0], (tri[2][1], tri[2][0], tri[2][3], tri[2][2])), 
+                filter(lambda triple: triple[2][0] == triple[2][2], points)))
         
-    def query(self, left_top, right_bottom):
-        query_result = []
-        lines_in_area = self.double_tree.query(left_top, right_bottom)
-        prev = None # prevent double printing
-        for line in lines_in_area:
-            if prev != line:
-                query_result.append(str(line[0])+" "+str(line[1])+" "+
-                                    str(line[2])+" "+str(line[3]))
-            prev = line   
+    def query(self, x_range, y_range):
+        query_results = []
+        lines_in_area = self.double_tree.query(x_range, y_range)
+        #print lines_in_area
+        query_results += lines_in_area
+        horizontal = self.interval_tree_horizontal.query(x_range[0], y_range)
+        query_results += horizontal
+        #print horizontal
+        vertical = self.interval_tree_horizontal.query(y_range[0], x_range)
+        print vertical
+        query_results = list(set(query_results))
+        query_results.sort()
         
-        for q in self.interval_tree_horizontal.query(0):
-            print q
+        query_results = map(lambda line: str(line[0])+" "+str(line[1])+" "+
+                                    str(line[2])+" "+str(line[3]), query_results)
         
-        return query_result             
+        return query_results             
 
 if __name__ == '__main__':
     cool_thing = WindowingAnswerMachine("lines.dat")
     #single_tree = SingleDimensionRangeTree([3, 3, 10, 19, 23, 30, 37, 37, 49, 59, 62, 70, 80, 89, 93, 97])
     #print single_tree.query((25, 90))
-    for line in cool_thing.query((-1, 1), (-3, 0)):
+    for line in cool_thing.query((3.5, 4.5), (-9, 9)):
         print line
     
     
