@@ -1,13 +1,17 @@
 # -*- coding: utf-8 -*-
 
+from collections import OrderedDict # remove dupliates preserving order
+
 class Node:
     def __init__(self, value):
         #print "Node value: ", value
         self.value = value
         self.left = None
         self.right = None
-        self.next_level = None    
-        self.my_line = None   
+        self.next_level = None     # multidimensional range trees
+        self.my_line = None   # original line to link with 
+        self.left_lines = None # this is for interval trees
+        self.right_lines = None
     def isLeaf(self):
         if self.left == None: # this is enough
             return True
@@ -46,7 +50,7 @@ class SingleDimensionRangeTree:
         division_node = self.find_division(x_range, self.root)
         if division_node.isLeaf() and division_node.inRange(x_range):
             result_set.append(division_node.my_line)
-            print division_node.my_line
+            #print division_node.my_line
         elif not division_node.isLeaf():
             self.left_add(result_set, x_range, division_node.left)
             self.right_add(result_set, x_range, division_node.right)
@@ -94,7 +98,7 @@ class SingleDimensionRangeTree:
 
 class TwoDimensionalRangeTree:
     def __init__(self, set_of_points):
-        x_points = list(set(map(lambda p: p[0], set_of_points)))
+        x_points = list(OrderedDict.fromkeys(map(lambda p: p[0], set_of_points)))
         x_points.sort()
         y_points = list(set_of_points)
         y_points.sort(key=lambda p: p[1])
@@ -189,24 +193,72 @@ class TwoDimensionalRangeTree:
 
 class IntervalTree:
     def __init__(self, points):
-        pass
+        points.sort(key=lambda p: p[0])
+        #for line in set_of_points:
+        #    print line
+        self.root = self.build_tree(points)
     
     def build_tree(self, set_of_points):
         if len(set_of_points) == 1:
             leaf = Node(set_of_points[0][0])
-            leaf.my_line = set_of_points[0][1]
+            leaf.left_lines = set_of_points[0][2]
+            leaf.right_lines = set_of_points[0][2]
             return leaf
         else:
+            '''print "points"
+            for p in set_of_points:
+                print p'''
             median_index = len(set_of_points) / 2
             median_value = set_of_points[median_index-1][0]
             node = Node(median_value)
-            node.my_line = set_of_points[median_index-1][1]
-            node.left = self.build_tree(set_of_points[:median_index])
-            node.right = self.build_tree(set_of_points[median_index:])
+            #print "median", median_value
+            
+            lines_only = map(lambda p: p[2], set_of_points)
+            node.left_lines = list(OrderedDict.fromkeys(
+                    filter(lambda p: p[0] <= median_value and 
+                   p[2] >= median_value, lines_only)))
+            node.right_lines = list(node.left_lines)
+            node.right_lines.sort(key=lambda p: p[2], reverse=True)
+            '''print "left lines"
+            for p in node.left_lines:
+                print p
+            print "right lines"
+            for i in node.right_lines:
+                print i'''
+            
+            L = filter(lambda p: p[2][2] <= median_value, set_of_points)
+            R = filter(lambda p: p[2][0] > median_value, set_of_points)
+            #print "L", L
+            #print "R", R  
+            
+            if len(L) > 0:
+                node.left = self.build_tree(L)
+            if len(R) > 0:
+                node.right = self.build_tree(R)
             return node
 
-    def query(self, left_top, right_bottom):
-        pass
+    def query(self, x_q):
+        result_set = []
+        self.visit(self.root, x_q, result_set)
+        return result_set
+
+    def visit(self, root, x_q, result_set):
+        if root.isLeaf():
+            if root.left_lines[0] <= x_q and x_q <= root.left_lines[2]:
+                result_set.append(root.left_lines)
+        else:
+            if x_q < root.value:
+                for line in root.left_lines:
+                    if not (line[0] <= x_q and x_q <= line[2]):
+                        break
+                    result_set.append(line)
+                self.visit(root.left, x_q, result_set)
+            else:
+                for line in root.right_lines:
+                    if not (line[0] <= x_q and x_q <= line[2]):
+                        break
+                    result_set.append(line)
+                self.visit(root.right, x_q, result_set)
 
 class WindowingAnswerMachine:
     def __init__(self, filename):
@@ -214,15 +266,18 @@ class WindowingAnswerMachine:
         with open(filename) as data:
             for line in data:
                 a, b, c, d = line.split()
-                lines.append((a, b, c, d))
+                lines.append((float(a), float(b), float(c), float(d)))
         
         points = []
         for quadruple in lines:
-            points.append((float(quadruple[0]), float(quadruple[1]), quadruple))
-            points.append((float(quadruple[2]), float(quadruple[3]), quadruple))
+            points.append((quadruple[0], quadruple[1], quadruple))
+            points.append((quadruple[2], quadruple[3], quadruple))
             
         self.double_tree = TwoDimensionalRangeTree(points)
-        self.interval_tree = IntervalTree(points)
+        self.interval_tree_horizontal = \
+            IntervalTree(filter(lambda triple: triple[2][0] != triple[2][2], points))
+        # self.interval_tree_vertical = \
+        #     IntervalTree(filter(lambda triple: triple[2][0] == triple[2][2], points))
         
     def query(self, left_top, right_bottom):
         query_result = []
@@ -230,8 +285,12 @@ class WindowingAnswerMachine:
         prev = None # prevent double printing
         for line in lines_in_area:
             if prev != line:
-                query_result.append(line)
+                query_result.append(str(line[0])+" "+str(line[1])+" "+
+                                    str(line[2])+" "+str(line[3]))
             prev = line   
+        
+        for q in self.interval_tree_horizontal.query(0):
+            print q
         
         return query_result             
 
@@ -239,7 +298,7 @@ if __name__ == '__main__':
     cool_thing = WindowingAnswerMachine("lines.dat")
     #single_tree = SingleDimensionRangeTree([3, 3, 10, 19, 23, 30, 37, 37, 49, 59, 62, 70, 80, 89, 93, 97])
     #print single_tree.query((25, 90))
-    for line in cool_thing.query((-1.3, 1), (-3, 0)):
+    for line in cool_thing.query((-1, 1), (-3, 0)):
         print line
     
     

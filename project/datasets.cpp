@@ -22,6 +22,8 @@ inline void make_vertical_lines(int num_lines)
 	    double x = x_distribution(generator);
 	    double one = y_distribution(generator);
 	    double two = y_distribution(generator);
+	    if(one > two)
+	        swap(one, two);
         fprintf(file, "%lf %lf %lf %lf\n", x, one, x, two);
         printf("%lf %lf %lf %lf\n", x, one, x, two);
 	}
@@ -34,6 +36,8 @@ inline void make_horizontal_lines(int num_lines)
 	    double y = y_distribution(generator);
 	    double one = x_distribution(generator);
 	    double two = x_distribution(generator);
+	    if(one > two)
+	        swap(one, two);
         fprintf(file, "%lf %lf %lf %lf\n", one, y, two, y);
         printf("%lf %lf %lf %lf\n", one, y, two, y);
 	}
