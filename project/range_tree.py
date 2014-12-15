@@ -2,7 +2,6 @@
 
 from collections import OrderedDict # remove dupliates preserving order
 import sys
-from numpy.f2py.auxfuncs import throw_error
 
 class Node:
     def __init__(self, value):
